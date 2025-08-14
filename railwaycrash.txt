@@ -1,0 +1,2 @@
+[3/8] RUN apt-get update && apt-get install -y gcc g++ curl && rm -rf /var/lib/apt/lists/*
+process "/bin/sh -c apt-get update && apt-get install -y gcc g++ curl && rm -rf /var/lib/apt/lists/*" did not complete successfully: exit code: 137: context canceled: context canceled
