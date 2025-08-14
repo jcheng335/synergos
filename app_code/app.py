@@ -225,20 +225,43 @@ def analyze_job_responsibilities(responsibilities):
         aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
         region_name = os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')
         
-        logger.info("Connecting to DynamoDB to get standard competencies and descriptions")
-        dynamodb = boto3.resource('dynamodb', region_name=region_name)
-        competencies_table = dynamodb.Table(COMPETENCIES_TABLE_NAME) 
-        comp_scan_paginator = competencies_table.meta.client.get_paginator('scan')
-        for page in comp_scan_paginator.paginate(TableName=COMPETENCIES_TABLE_NAME, ProjectionExpression="#nm, description", ExpressionAttributeNames={"#nm": "name"}):
-             for item in page.get('Items', []):
-                 comp_name = item.get('name')
-                 if comp_name:
-                      standard_competency_names.add(comp_name)
-                      standard_competencies_details[comp_name] = item.get('description', '') 
-        logger.info(f"Loaded {len(standard_competency_names)} standard competency names and details from DB.")
+        try:
+            logger.info("Connecting to DynamoDB to get standard competencies and descriptions")
+            dynamodb = boto3.resource('dynamodb', region_name=region_name)
+            competencies_table = dynamodb.Table(COMPETENCIES_TABLE_NAME) 
+            comp_scan_paginator = competencies_table.meta.client.get_paginator('scan')
+            for page in comp_scan_paginator.paginate(TableName=COMPETENCIES_TABLE_NAME, ProjectionExpression="#nm, description", ExpressionAttributeNames={"#nm": "name"}):
+                 for item in page.get('Items', []):
+                     comp_name = item.get('name')
+                     if comp_name:
+                          standard_competency_names.add(comp_name)
+                          standard_competencies_details[comp_name] = item.get('description', '') 
+            logger.info(f"Loaded {len(standard_competency_names)} standard competency names and details from DB.")
+        except Exception as db_error:
+            logger.warning(f"Could not load competencies from DynamoDB: {str(db_error)}. Using hardcoded fallback.")
+            # Fallback to hardcoded competencies for common interview skills
+            standard_competencies_details = {
+                "Analytical Thinking": "Ability to analyze complex information and solve problems systematically",
+                "Financial Acumen": "Understanding of financial concepts, analysis, and business metrics",
+                "Communication": "Effectively conveying information and ideas to others",
+                "Leadership": "Guiding and motivating teams to achieve goals",
+                "Technical Expertise": "Deep knowledge and skills in specific technical areas",
+                "Customer Focus": "Understanding and meeting customer needs effectively",
+                "Strategic Planning": "Developing long-term plans and strategies",
+                "Risk Management": "Identifying and mitigating potential risks",
+                "Collaboration": "Working effectively with others to achieve common goals",
+                "Innovation": "Creating new ideas and approaches to solve problems",
+                "Project Management": "Planning and executing projects successfully",
+                "Negotiation": "Reaching mutually beneficial agreements",
+                "Decision Making": "Making sound judgments based on available information",
+                "Adaptability": "Adjusting to changing circumstances and requirements",
+                "Business Acumen": "Understanding business operations and market dynamics"
+            }
+            standard_competency_names = set(standard_competencies_details.keys())
+            logger.info(f"Using {len(standard_competency_names)} hardcoded competencies as fallback")
 
         if not standard_competency_names:
-             logger.error("No standard competency names found in the database. Cannot perform analysis.")
+             logger.error("No standard competency names found in the database or fallback. Cannot perform analysis.")
              return {"tagged_responsibilities": [], "top_competencies": []}
         
         # REMOVED Keyword loading logic
@@ -467,6 +490,70 @@ def get_recommended_questions(top_competency_names):
     if not competencies_to_process:
         logger.warning("No top competencies provided to get_recommended_questions.")
         return []
+    
+    # Hardcoded fallback questions for common competencies
+    FALLBACK_QUESTIONS = {
+        "Analytical Thinking": {
+            "primary": "Tell me about a time when you had to analyze complex data to solve a problem. What was your approach?",
+            "backup": "Describe a situation where you identified a pattern or trend that others missed. How did you discover it?"
+        },
+        "Financial Acumen": {
+            "primary": "Share an example of when you used financial data to make an informed business decision.",
+            "backup": "Tell me about a time you identified a financial risk or opportunity. What actions did you take?"
+        },
+        "Communication": {
+            "primary": "Describe a time when you had to communicate complex information to a non-technical audience.",
+            "backup": "Tell me about a challenging conversation you had with a stakeholder. How did you handle it?"
+        },
+        "Leadership": {
+            "primary": "Tell me about a time you led a team through a challenging project or change.",
+            "backup": "Describe how you motivated a team member who was struggling with their performance."
+        },
+        "Technical Expertise": {
+            "primary": "Walk me through a complex technical problem you solved. What was your approach?",
+            "backup": "Tell me about a time you had to quickly learn a new technology or tool to complete a project."
+        },
+        "Customer Focus": {
+            "primary": "Tell me about a time you went above and beyond to meet a customer's needs.",
+            "backup": "Describe a situation where you had to balance customer demands with business constraints."
+        },
+        "Strategic Planning": {
+            "primary": "Describe a long-term strategy you developed and implemented. What was the outcome?",
+            "backup": "Tell me about a time you had to adjust your strategic plan due to changing circumstances."
+        },
+        "Risk Management": {
+            "primary": "Tell me about a significant risk you identified and how you mitigated it.",
+            "backup": "Describe a time when you had to make a decision with incomplete information. How did you assess the risks?"
+        },
+        "Collaboration": {
+            "primary": "Give an example of how you successfully collaborated with a difficult team member or department.",
+            "backup": "Tell me about a time you had to build consensus among stakeholders with different priorities."
+        },
+        "Innovation": {
+            "primary": "Describe an innovative solution you developed to solve a business problem.",
+            "backup": "Tell me about a time you challenged the status quo. What was the result?"
+        },
+        "Project Management": {
+            "primary": "Walk me through how you managed a complex project from inception to completion.",
+            "backup": "Tell me about a time a project didn't go as planned. How did you get it back on track?"
+        },
+        "Negotiation": {
+            "primary": "Describe your most challenging negotiation. What was your strategy and the outcome?",
+            "backup": "Tell me about a time you had to negotiate with limited leverage. How did you approach it?"
+        },
+        "Decision Making": {
+            "primary": "Tell me about a difficult decision you had to make quickly. What was your process?",
+            "backup": "Describe a time when you had to make an unpopular decision. How did you handle it?"
+        },
+        "Adaptability": {
+            "primary": "Tell me about a time you had to quickly adapt to a significant change at work.",
+            "backup": "Describe how you handled a situation where priorities suddenly shifted."
+        },
+        "Business Acumen": {
+            "primary": "Give an example of how you identified and capitalized on a business opportunity.",
+            "backup": "Tell me about a time you had to understand and navigate complex business dynamics."
+        }
+    }
         
     try:
         # --- Initialize DynamoDB Client ---
@@ -556,31 +643,30 @@ def get_recommended_questions(top_competency_names):
                 })
 
         except Exception as scan_err:
-             logger.error(f"DynamoDB scan operation failed: {scan_err}")
-             # If scan fails, return the generic fallback for all
-             recommended_questions_output = [
-                {
-                    "competency": "Fallback",
-                    "rank": 1,
-                    "primary_question": "Tell me about a time you faced a challenge.",
-                    "backup_question": "How do you handle competing priorities?"
-                }
-             ] 
-             # End of Scan approach error handling block - Move the GSI query alternative comments outside or delete
+             logger.error(f"DynamoDB scan operation failed: {scan_err}. Using fallback questions.")
+             # If scan fails, use the hardcoded fallback questions
+             for i, competency_name in enumerate(competencies_to_process):
+                 fallback_q = FALLBACK_QUESTIONS.get(competency_name, {})
+                 recommended_questions_output.append({
+                     "competency": competency_name,
+                     "rank": i + 1,
+                     "primary_question": fallback_q.get("primary", f"Tell me about your experience with {competency_name}"),
+                     "backup_question": fallback_q.get("backup", f"Describe a situation where you demonstrated {competency_name}")
+                 })
 
     # This block was originally outside the loop for the GSI approach.
     # Now it should be the main error handler for the function if the initial setup fails.
     except Exception as e:
-        logger.error(f"Error in get_recommended_questions (outside scan/query loop): {str(e)}")
-        # Return generic fallback questions on major error (e.g., connection failed)
-        recommended_questions_output = [
-            {
-                "competency": "Fallback",
-                "rank": 1,
-                "primary_question": "Tell me about a time you faced a challenge.",
-                "backup_question": "How do you handle competing priorities?"
-            }
-        ] 
+        logger.error(f"Error in get_recommended_questions: {str(e)}. Using fallback questions.")
+        # Use hardcoded fallback questions on major error
+        for i, competency_name in enumerate(competencies_to_process):
+            fallback_q = FALLBACK_QUESTIONS.get(competency_name, {})
+            recommended_questions_output.append({
+                "competency": competency_name,
+                "rank": i + 1,
+                "primary_question": fallback_q.get("primary", f"Tell me about your experience with {competency_name}"),
+                "backup_question": fallback_q.get("backup", f"Describe a situation where you demonstrated {competency_name}")
+            }) 
 
     logger.info(f"Returning {len(recommended_questions_output)} recommended question sets.")
     return recommended_questions_output

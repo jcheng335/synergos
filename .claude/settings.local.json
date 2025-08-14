@@ -28,7 +28,8 @@
       "Bash(railway up:*)",
       "Bash(railway whoami:*)",
       "Bash(curl:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(railway variables:*)"
     ],
     "deny": [],
     "ask": [],
