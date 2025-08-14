@@ -1098,7 +1098,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show processing indicators
         const processingIndicator = document.getElementById('processingIndicator');
         if (processingIndicator) {
-            processingIndicator.style.display = 'block';
+            processingIndicator.classList.add('show');
         }
         
         // Retrieve the current question and question index
@@ -1158,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             // Hide the processing indicator
             if (processingIndicator) {
-                processingIndicator.style.display = 'none';
+                processingIndicator.classList.remove('show');
             }
             
             console.log("Analysis data received:", data);
@@ -1204,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Hide the processing indicator
             if (processingIndicator) {
-                processingIndicator.style.display = 'none';
+                processingIndicator.classList.remove('show');
             }
             
             // Handle fallback
@@ -1611,14 +1611,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to show processing indicator
     function showProcessingIndicator() {
         console.log("DEBUG: Showing processing indicator");
-        processingIndicator.style.display = 'flex'; // Using flex to properly center
+        processingIndicator.classList.add('show');
     }
 
     // Function to hide processing indicator
     function hideProcessingIndicator() {
         console.log("DEBUG: Hiding processing indicator");
-        processingIndicator.style.display = 'none';
-            }
+        processingIndicator.classList.remove('show');
+    }
 
     // Function to render responsibilities with tags
     function renderTaggedResponsibilities(taggedResponsibilities) {
