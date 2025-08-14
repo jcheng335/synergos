@@ -93,7 +93,10 @@ except ImportError:
         logger.critical("No OpenAI SDK available, API calls will fail")
         USE_NEW_OPENAI_SDK = False
 
-app = Flask(__name__, template_folder="templates")
+base_dir = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, 
+            template_folder=os.path.join(base_dir, "templates"),
+            static_folder=os.path.join(base_dir, "static"))
 sock = Sock(app) # Initialize Flask-Sock
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
