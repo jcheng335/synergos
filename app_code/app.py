@@ -1096,6 +1096,56 @@ def get_api_key_status():
         "aws_region": os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')
     })
 
+@app.route("/api/test_api_keys", methods=['POST'])
+def test_api_keys():
+    """Test API keys by making actual API calls"""
+    global client, USE_NEW_OPENAI_SDK
+    
+    results = {
+        "openai": {"configured": False, "working": False, "error": None},
+        "aws": {"configured": False, "working": False, "error": None}
+    }
+    
+    # Test OpenAI API
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    if openai_key:
+        results["openai"]["configured"] = True
+        try:
+            # Make a simple test call to OpenAI
+            if USE_NEW_OPENAI_SDK and client:
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": "Say 'API working'"}],
+                    max_tokens=10
+                )
+                results["openai"]["working"] = True
+                results["openai"]["response"] = response.choices[0].message.content
+            else:
+                results["openai"]["error"] = "OpenAI client not initialized"
+        except Exception as e:
+            results["openai"]["error"] = str(e)
+            logger.error(f"OpenAI API test failed: {str(e)}")
+    
+    # Test AWS API
+    aws_key = os.environ.get('AWS_ACCESS_KEY_ID')
+    aws_secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    if aws_key and aws_secret:
+        results["aws"]["configured"] = True
+        try:
+            # Test DynamoDB connection
+            db = get_db()
+            # Simple test query
+            cursor = db.cursor()
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+            cursor.close()
+            results["aws"]["working"] = True
+        except Exception as e:
+            results["aws"]["error"] = str(e)
+            logger.error(f"AWS/Database test failed: {str(e)}")
+    
+    return jsonify(results)
+
 @app.route("/api/prepare_interview_questions", methods=['POST', "GET"])
 def prepare_interview_questions():
     logger.info("Received request to prepare interview questions")
@@ -1350,16 +1400,24 @@ def upload_resume():
             if not openai_api_key:
                 logger.error("OpenAI API key is not set")
                 return jsonify({"error": "OpenAI API key is not configured"}), 500
+            
+            if not client:
+                logger.error("OpenAI client is not initialized")
+                return jsonify({"error": "OpenAI client is not initialized. Please check API configuration."}), 500
 
-            if USE_NEW_OPENAI_SDK:
+            if USE_NEW_OPENAI_SDK and client:
                 logger.info("Calling OpenAI API with new SDK")
-                completion = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                completion_text = completion.choices[0].message.content
+                try:
+                    completion = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "user", "content": prompt}
+                        ]
+                    )
+                    completion_text = completion.choices[0].message.content
+                except Exception as api_error:
+                    logger.error(f"OpenAI API call failed: {str(api_error)}")
+                    return jsonify({"error": f"OpenAI API call failed: {str(api_error)}"}), 500
             else:
                 logger.info("Calling OpenAI API with old SDK")
                 completion = openai.ChatCompletion.create(

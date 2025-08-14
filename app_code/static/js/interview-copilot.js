@@ -2272,6 +2272,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners for configuration modal
     document.getElementById('saveConfig').addEventListener('click', saveApiConfiguration);
     
+    // Add test API button handler
+    document.getElementById('testApiKeys').addEventListener('click', async function() {
+        const statusDiv = document.getElementById('configStatus');
+        statusDiv.className = 'alert alert-info';
+        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing API connections...';
+        statusDiv.style.display = 'block';
+        
+        try {
+            const response = await fetch('/api/test_api_keys', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const results = await response.json();
+            
+            let statusHTML = '<h6>API Test Results:</h6><ul class="mb-0">';
+            
+            // Check OpenAI
+            if (results.openai.configured) {
+                if (results.openai.working) {
+                    statusHTML += '<li class="text-success"><i class="fas fa-check"></i> OpenAI API: Working</li>';
+                } else {
+                    statusHTML += `<li class="text-danger"><i class="fas fa-times"></i> OpenAI API: ${results.openai.error || 'Failed'}</li>`;
+                }
+            } else {
+                statusHTML += '<li class="text-warning"><i class="fas fa-exclamation"></i> OpenAI API: Not configured</li>';
+            }
+            
+            // Check AWS
+            if (results.aws.configured) {
+                if (results.aws.working) {
+                    statusHTML += '<li class="text-success"><i class="fas fa-check"></i> AWS/Database: Working</li>';
+                } else {
+                    statusHTML += `<li class="text-danger"><i class="fas fa-times"></i> AWS/Database: ${results.aws.error || 'Failed'}</li>`;
+                }
+            } else {
+                statusHTML += '<li class="text-warning"><i class="fas fa-exclamation"></i> AWS/Database: Not configured</li>';
+            }
+            
+            statusHTML += '</ul>';
+            
+            statusDiv.className = 'alert ' + (
+                (results.openai.working && results.aws.working) ? 'alert-success' :
+                (results.openai.working || results.aws.working) ? 'alert-warning' : 'alert-danger'
+            );
+            statusDiv.innerHTML = statusHTML;
+        } catch (error) {
+            statusDiv.className = 'alert alert-danger';
+            statusDiv.innerHTML = `<i class="fas fa-times"></i> Error testing APIs: ${error.message}`;
+        }
+    });
+    
     // Clear status when modal is opened
     document.getElementById('configModal').addEventListener('show.bs.modal', function() {
         const statusDiv = document.getElementById('configStatus');
