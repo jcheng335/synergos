@@ -17,7 +17,17 @@
       "Bash(git checkout:*)",
       "Bash(find:*)",
       "Bash(mv:*)",
-      "Bash(docker build:*)"
+      "Bash(docker build:*)",
+      "Bash(npm i:*)",
+      "Bash(railway --version)",
+      "Bash(railway login:*)",
+      "Bash(railway link:*)",
+      "Bash(railway logs:*)",
+      "Bash(railway status:*)",
+      "Bash(railway list:*)",
+      "Bash(railway up:*)",
+      "Bash(railway whoami:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": [],
