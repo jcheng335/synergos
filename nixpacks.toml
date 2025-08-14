@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["python311", "gcc"]
+
+[phases.install]
+cmds = ["cd synergos && pip install -r requirements.txt"]
+
+[start]
+cmd = "cd synergos && python app.py"
+
+[variables]
+PYTHONPATH = "/app/synergos"
