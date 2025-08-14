@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app_code'))
 # Import the actual Flask app
 from app import app
 
-# Export for Gunicorn
+# Export for Gunicorn - both 'app' and 'application' for compatibility
 application = app
 
 if __name__ == "__main__":
