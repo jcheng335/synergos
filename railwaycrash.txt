@@ -16,107 +16,119 @@ web
 
 Deployment crashed
 
-3 seconds ago
+2 minutes ago
 
 web
 
 Deployment restarted
-
-3 seconds ago
-
-web
-
-Deployment restarted
-
-3 seconds ago
-
-web
-
-Deployment restarted
-
-3 seconds ago
-
-web
-
-Deployment restarted
-
-3 seconds ago
-
-web
-
-Deployment restarted
-
-8 seconds ago
-
-web
-
-Deployment restarted
-
-8 seconds ago
-
-web
-
-Deployment crashed
-
-11 seconds ago
-
-web
-
-Deployment restarted
-
-17 seconds ago
-
-web
-
-Deployment restarted
-
-17 seconds ago
-
-web
-
-Deployment restarted
-
-17 seconds ago
-
-web
-
-Deployment restarted
-
-17 seconds ago
-
-web
-
-Deployment restarted
-
-17 seconds ago
-
-web
-
-Deployment restarted
-
-17 seconds ago
-
-web
-
-Deployment successful
-
-1 minute ago
-
-web
-
-Deployment successful
 
 2 minutes ago
 
 web
 
-Deployment failed
+Deployment restarted
+
+2 minutes ago
+
+web
+
+Deployment restarted
+
+2 minutes ago
+
+web
+
+Deployment restarted
+
+2 minutes ago
+
+web
+
+Deployment restarted
+
+2 minutes ago
+
+web
+
+Deployment restarted
+
+2 minutes ago
+
+web
+
+Deployment crashed
+
+3 minutes ago
+
+web
+
+Deployment restarted
+
+3 minutes ago
+
+web
+
+Deployment restarted
+
+3 minutes ago
+
+web
+
+Deployment restarted
+
+3 minutes ago
+
+web
+
+Deployment restarted
+
+3 minutes ago
+
+web
+
+Deployment restarted
+
+3 minutes ago
+
+web
+
+Deployment restarted
+
+3 minutes ago
+
+web
+
+Deployment successful
+
+4 minutes ago
+
+web
+
+Deployment successful
+
+4 minutes ago
+
+web
+
+Deployment crashed
 
 5 minutes ago
 
 web
 
-Deployment failed
+Deployment restarted
+
+5 minutes ago
+
+web
+
+Deployment restarted
+
+5 minutes ago
+
+web
+
+Deployment restarted
 
 5 minutes ago
 
@@ -156,8 +168,8 @@ History
 
 web
 /
-4ce0686
-Aug 13, 2025, 11:18 PM
+f2e946a
+Aug 13, 2025, 11:21 PM
 Crashed
 
 web-production-3ab3.up.railway.app
@@ -173,19 +185,61 @@ Filter logs using "", (), AND, OR, -
 
 
 
-You reached the start of the range → Aug 13, 2025, 11:18 PM
+You reached the start of the range → Aug 13, 2025, 11:21 PM
 
-Starting Container
+    self.callable = self.load()
 
-[2025-08-14 03:19:28 +0000] [1] [INFO] Starting gunicorn 21.2.0
+                    ^^^^^^^^^^^
 
-[2025-08-14 03:19:28 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+  File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
 
-[2025-08-14 03:19:28 +0000] [1] [INFO] Using worker: sync
+    return self.load_wsgiapp()
 
-[2025-08-14 03:19:28 +0000] [2] [INFO] Booting worker with pid: 2
+           ^^^^^^^^^^^^^^^^^^^
 
-[2025-08-14 03:19:28 +0000] [2] [ERROR] Exception in worker process
+  File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+
+    return util.import_app(self.app_uri)
+
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 371, in import_app
+
+    mod = importlib.import_module(module)
+
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+
+  File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+
+ModuleNotFoundError: No module named 'app_wrapper'
+
+[2025-08-14 03:22:32 +0000] [2] [INFO] Worker exiting (pid: 2)
+
+[2025-08-14 03:22:32 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+
+[2025-08-14 03:22:32 +0000] [1] [ERROR] Shutting down: Master
+
+[2025-08-14 03:22:32 +0000] [1] [ERROR] Reason: Worker failed to boot.
+
+[2025-08-14 03:22:33 +0000] [1] [INFO] Starting gunicorn 21.2.0
+
+[2025-08-14 03:22:33 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+
+[2025-08-14 03:22:33 +0000] [1] [INFO] Using worker: sync
+
+[2025-08-14 03:22:33 +0000] [2] [INFO] Booting worker with pid: 2
+
+[2025-08-14 03:22:33 +0000] [2] [ERROR] Exception in worker process
 
 Traceback (most recent call last):
 
@@ -241,49 +295,13 @@ Traceback (most recent call last):
 
 ModuleNotFoundError: No module named 'app_wrapper'
 
-[2025-08-14 03:19:28 +0000] [2] [INFO] Worker exiting (pid: 2)
+[2025-08-14 03:22:33 +0000] [2] [INFO] Worker exiting (pid: 2)
 
-[2025-08-14 03:19:28 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2025-08-14 03:22:33 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
 
-[2025-08-14 03:19:28 +0000] [1] [ERROR] Shutting down: Master
+[2025-08-14 03:22:33 +0000] [1] [ERROR] Shutting down: Master
 
-[2025-08-14 03:19:28 +0000] [1] [ERROR] Reason: Worker failed to boot.
-
-[2025-08-14 03:19:29 +0000] [1] [INFO] Starting gunicorn 21.2.0
-
-[2025-08-14 03:19:29 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
-
-[2025-08-14 03:19:29 +0000] [1] [INFO] Using worker: sync
-
-[2025-08-14 03:19:29 +0000] [2] [INFO] Booting worker with pid: 2
-
-[2025-08-14 03:19:29 +0000] [2] [ERROR] Exception in worker process
-
-Traceback (most recent call last):
-
-  File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
-
-    worker.init_process()
-
-  File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 134, in init_process
-
-    self.load_wsgi()
-
-  File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
-
-    self.wsgi = self.app.wsgi()
-
-                ^^^^^^^^^^^^^^^
-
-  File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 67, in wsgi
-
-    self.callable = self.load()
-
-                    ^^^^^^^^^^^
-
-  File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
-
-    return self.load_wsgiapp()
+[2025-08-14 03:22:33 +0000] [1] [ERROR] Reason: Worker failed to boot.
 
 
 thorough-wholeness | Railway
