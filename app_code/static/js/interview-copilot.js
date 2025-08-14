@@ -725,70 +725,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayResumeQuestions(questions) {
         console.log("Displaying resume questions in separate card:", questions);
         
-        // Find or create a container for resume questions
-        let resumeQuestionsContainer = document.getElementById('resume_questions_container');
+        // Use the existing resumeQuestionsCard from the HTML
+        const resumeQuestionsCard = document.getElementById('resumeQuestionsCard');
+        const resumeQuestionsBox = document.getElementById('resume_question_box');
         
-        // If container already exists, just update its contents
-        if (resumeQuestionsContainer) {
-            console.log("Resume questions container already exists, updating contents");
-        } else {
-            console.log("Creating new resume questions container");
-            
-            // First strategy: Try to insert after the question_box container 
-            const questionBoxContainer = document.getElementById('question_box');
-            if (questionBoxContainer) {
-                console.log("Found question_box, inserting after its parent card");
-                const parentCard = questionBoxContainer.closest('.card');
-                
-                if (parentCard) {
-                    resumeQuestionsContainer = document.createElement('div');
-                    resumeQuestionsContainer.id = 'resume_questions_container';
-                    resumeQuestionsContainer.className = 'card mt-3';
-                    resumeQuestionsContainer.innerHTML = `
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Resume-Based Questions</h5>
-                        </div>
-                        <div class="card-body" id="resume_questions_box"></div>
-                    `;
-                    
-                    // Insert after the parent card
-                    parentCard.parentNode.insertBefore(resumeQuestionsContainer, parentCard.nextSibling);
-                    console.log("Successfully inserted resume questions container after question box card");
-                } else {
-                    console.log("Could not find parent card of question_box, using fallback strategy");
-                    // Fallback to direct insertion into the interview controls section
-                    const interviewControlsSection = document.querySelector('.interview-controls-header');
-                    if (interviewControlsSection) {
-                        resumeQuestionsContainer = document.createElement('div');
-                        resumeQuestionsContainer.id = 'resume_questions_container';
-                        resumeQuestionsContainer.className = 'card mt-3';
-                        resumeQuestionsContainer.innerHTML = `
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Resume-Based Questions</h5>
-                            </div>
-                            <div class="card-body" id="resume_questions_box"></div>
-                        `;
-                        
-                        // Append to the parent of the interview controls section
-                        interviewControlsSection.parentNode.appendChild(resumeQuestionsContainer);
-                        console.log("Used fallback strategy to insert resume questions container");
-                    } else {
-                        console.error("All strategies to place resume questions container failed");
-                        return; // Cannot proceed if we can't find a place to insert
-                    }
-                }
-            } else {
-                console.error("Could not find question_box element");
-                return;
-            }
-        }
-        
-        // Get or create the resume questions box inside the container
-        let resumeQuestionsBox = document.getElementById('resume_questions_box');
-        if (!resumeQuestionsBox) {
-            console.error("Could not find resume questions box");
+        if (!resumeQuestionsCard || !resumeQuestionsBox) {
+            console.error("Could not find resume questions card or box");
             return;
         }
+        
+        // Show the card
+        resumeQuestionsCard.style.display = 'block';
         
         // Clear existing resume questions
         resumeQuestionsBox.innerHTML = '';
@@ -830,8 +777,6 @@ document.addEventListener('DOMContentLoaded', function() {
             questionDiv.addEventListener('click', handleQuestionClick);
         });
         
-        // Make sure the container is visible
-        resumeQuestionsContainer.style.display = 'block';
         console.log("Resume questions displayed successfully");
     }
 

@@ -1488,10 +1488,20 @@ def upload_resume():
                     "resume_analysis": SESSION_STORE[session_id].get("parsed_info", {})
                 })
             else:
-                logger.info(f"Returning {len(questions)} questions")
+                # Format questions to match frontend expectations
+                formatted_questions = []
+                for i, question_text in enumerate(questions):
+                    formatted_questions.append({
+                        "question": question_text,
+                        "competency": "Resume-Based",
+                        "type": "primary",
+                        "isOriginal": True
+                    })
+                
+                logger.info(f"Returning {len(formatted_questions)} formatted questions")
                 return jsonify({
                     "success": True, 
-                    "questions": questions,
+                    "questions": formatted_questions,
                     "resume_analysis": SESSION_STORE[session_id].get("parsed_info", {})
                 })
 
