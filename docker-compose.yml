@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - FLASK_ENV=${FLASK_ENV}
+      - FLASK_DEBUG=${FLASK_DEBUG}
+      - MOCK_SERVICES=${MOCK_SERVICES:-false}
+    volumes:
+      - ./logs:/app/logs
+      - ./tmp:/app/tmp
+      - ./synergos/static:/app/synergos/static
+      - ./synergos/templates:/app/synergos/templates
+    restart: unless-stopped 

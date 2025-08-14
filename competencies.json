@@ -1,0 +1,127 @@
+[
+  {
+    "name": "Technical Expertise",
+    "description": "Proficiency in technical skills, knowledge, and abilities relevant to the role.",
+    "keywords": ["technical", "skill", "proficiency", "expertise", "knowledge"]
+  },
+  {
+    "name": "Problem Solving",
+    "description": "Ability to identify, analyze, and solve complex problems effectively.",
+    "keywords": ["problem", "solution", "resolve", "troubleshoot", "analyze"]
+  },
+  {
+    "name": "Communication",
+    "description": "Ability to convey information clearly and effectively both verbally and in writing.",
+    "keywords": ["communicate", "express", "articulate", "present", "write"]
+  },
+  {
+    "name": "Leadership",
+    "description": "Ability to guide, influence, and inspire others to achieve goals.",
+    "keywords": ["lead", "manage", "influence", "direct", "guide"]
+  },
+  {
+    "name": "Adaptability",
+    "description": "Ability to adjust to new conditions, challenges, and environments.",
+    "keywords": ["adapt", "flexible", "adjust", "change", "versatile"]
+  },
+  {
+    "name": "Teamwork",
+    "description": "Ability to work collaboratively with others toward common goals.",
+    "keywords": ["team", "collaborate", "cooperate", "contribute", "participate"]
+  },
+  {
+    "name": "Initiative",
+    "description": "Willingness to take action and responsibility without being prompted.",
+    "keywords": ["initiate", "proactive", "self-starter", "drive", "independent"]
+  },
+  {
+    "name": "Attention to Detail",
+    "description": "Thoroughness in accomplishing tasks with precision and accuracy.",
+    "keywords": ["detail", "accurate", "precision", "thorough", "meticulous"]
+  },
+  {
+    "name": "Strategic Thinking",
+    "description": "Ability to develop long-term plans and solutions that align with goals.",
+    "keywords": ["strategic", "plan", "vision", "foresight", "long-term"]
+  },
+  {
+    "name": "Result Orientation",
+    "description": "Focus on achieving outcomes and measurable results.",
+    "keywords": ["result", "outcome", "achieve", "accomplish", "deliver"]
+  },
+  {
+    "name": "Customer Focus",
+    "description": "Understanding and meeting the needs of customers or clients.",
+    "keywords": ["customer", "client", "service", "satisfaction", "relationship"]
+  },
+  {
+    "name": "Innovation",
+    "description": "Ability to generate new ideas and approach situations in creative ways.",
+    "keywords": ["innovate", "creative", "invent", "novel", "original"]
+  },
+  {
+    "name": "Action Oriented",
+    "description": "Takes on new opportunities and tough challenges with a sense of urgency, high energy, and enthusiasm.",
+    "keywords": ["action", "urgency", "initiative", "challenge", "enthusiasm", "energy"],
+    "questions": [
+      "Tell me about a time when you took initiative on a project without being asked.",
+      "Describe a situation where you had to act quickly to solve a problem."
+    ]
+  },
+  {
+    "name": "Instills Trust",
+    "description": "Gains the confidence and trust of others through honesty, integrity, and authenticity.",
+    "keywords": ["trust", "integrity", "honesty", "authentic", "transparent", "ethics"],
+    "questions": [
+      "Tell me about a time when your integrity was challenged. How did you handle it?",
+      "Describe a situation where you had to build trust with a skeptical team or client."
+    ]
+  },
+  {
+    "name": "Collaborative",
+    "description": "Builds partnerships and works collaboratively with others to meet shared objectives.",
+    "keywords": ["collaborate", "team", "partnership", "cooperation", "joint", "together"],
+    "questions": [
+      "Give me an example of when you worked with a team to accomplish a goal.",
+      "Tell me about a time when you had to collaborate with someone who had a different working style."
+    ]
+  },
+  {
+    "name": "Strategic Mindset",
+    "description": "Sees ahead to future possibilities and translates them into breakthrough strategies.",
+    "keywords": ["strategy", "vision", "future", "plan", "foresight", "direction"],
+    "questions": [
+      "Tell me about a time when you identified a future opportunity and developed a strategy to capitalize on it.",
+      "Describe a situation where you had to think long-term while also addressing immediate needs."
+    ]
+  },
+  {
+    "name": "Decision Making",
+    "description": "Makes good and timely decisions that keep the organization moving forward.",
+    "keywords": ["decision", "choice", "judgment", "evaluate", "determine", "assess"],
+    "questions": [
+      "Tell me about a difficult decision you had to make with limited information.",
+      "Describe a situation where you had to make a quick decision under pressure."
+    ]
+  },
+  {
+    "name": "Leadership",
+    "description": "Attracts, develops, and motivates a diverse team of people.",
+    "keywords": ["lead", "direct", "guide", "motivate", "inspire", "influence"],
+    "questions": [
+      "Tell me about a time when you had to lead a team through a difficult situation.",
+      "Describe your approach to developing and mentoring team members."
+    ]
+  },
+  {
+    "name": "Introduction",
+    "description": "Basic introductory questions to start an interview.",
+    "keywords": ["background", "experience", "introduction", "overview", "yourself"],
+    "questions": [
+      "Tell me about yourself and your background.",
+      "Walk me through your resume and career progression.",
+      "Why are you interested in this position?",
+      "What attracted you to our company?"
+    ]
+  }
+]

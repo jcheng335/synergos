@@ -1,0 +1,45 @@
+{
+  "services": [
+    {
+      "type": "web",
+      "name": "synergos-interview-app",
+      "env": "python",
+      "buildCommand": "pip install -r requirements.txt",
+      "startCommand": "gunicorn run_app_production:app",
+      "envVars": [
+        {
+          "key": "PYTHON_VERSION",
+          "value": "3.9.0"
+        },
+        {
+          "key": "OPENAI_API_KEY",
+          "sync": "false"
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "sync": "false"
+        },
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "sync": "false"
+        },
+        {
+          "key": "AWS_DEFAULT_REGION",
+          "value": "us-east-1"
+        },
+        {
+          "key": "FLASK_ENV",
+          "value": "production"
+        },
+        {
+          "key": "FLASK_DEBUG",
+          "value": "0"
+        },
+        {
+          "key": "MOCK_SERVICES",
+          "value": "false"
+        }
+      ]
+    }
+  ]
+}

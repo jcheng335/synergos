@@ -1,0 +1,347 @@
+// Additional JavaScript for job analysis functionality
+// Map common keywords in job responsibilities to competencies
+const keywordsToCompetencyMap = {
+    // Leadership
+    "lead": "Leadership",
+    "leadership": "Leadership",
+    "manage": "Leadership",
+    "direct": "Leadership",
+    "oversee": "Leadership",
+    "supervise": "Leadership",
+    "guide": "Leadership",
+    "directing": "Leadership",
+    "mentoring": "Leadership",
+    "coaching": "Leadership",
+    
+    // Problem Solving
+    "solve": "Problem Solving",
+    "troubleshoot": "Problem Solving",
+    "analyze": "Problem Solving",
+    "resolve": "Problem Solving",
+    "identify": "Problem Solving",
+    "solution": "Problem Solving",
+    "debug": "Problem Solving",
+    "diagnose": "Problem Solving",
+    "root cause": "Problem Solving",
+    "critical thinking": "Problem Solving",
+    
+    // Communication
+    "communicate": "Communication",
+    "presentation": "Communication",
+    "written": "Communication",
+    "verbal": "Communication",
+    "document": "Communication",
+    "message": "Communication",
+    "writing": "Communication",
+    "speak": "Communication",
+    "present": "Communication",
+    "listening": "Communication",
+    
+    // Customer Focus
+    "customer": "Customer Focus",
+    "client": "Customer Focus",
+    "service": "Customer Focus",
+    "satisfaction": "Customer Focus",
+    "user experience": "Customer Focus",
+    "support": "Customer Focus",
+    "relationship": "Customer Focus",
+    
+    // Financial Acumen
+    "financial": "Financial Acumen",
+    "budget": "Financial Acumen",
+    "finance": "Financial Acumen",
+    "cost": "Financial Acumen",
+    "revenue": "Financial Acumen",
+    "pricing": "Financial Acumen",
+    "profit": "Financial Acumen",
+    "expense": "Financial Acumen",
+    "forecasting": "Financial Acumen",
+    
+    // Decision Quality
+    "decision": "Decision Quality",
+    "evaluate": "Decision Quality",
+    "assessment": "Decision Quality",
+    "assess": "Decision Quality",
+    "judgment": "Decision Quality",
+    "determine": "Decision Quality",
+    "criteria": "Decision Quality",
+    "trade-off": "Decision Quality",
+    
+    // Strategic Mindset
+    "strategy": "Strategic Mindset",
+    "strategic": "Strategic Mindset",
+    "long-term": "Strategic Mindset",
+    "vision": "Strategic Mindset",
+    "market trends": "Strategic Mindset",
+    "industry trends": "Strategic Mindset",
+    "roadmap": "Strategic Mindset",
+    "direction": "Strategic Mindset",
+    
+    // Drives Results
+    "results": "Drives Results",
+    "deliver": "Drives Results",
+    "outcome": "Drives Results",
+    "performance": "Drives Results",
+    "achieve": "Drives Results",
+    "goal": "Drives Results",
+    "objective": "Drives Results",
+    "target": "Drives Results",
+    "kpi": "Drives Results",
+    
+    // Manages Complexity
+    "complex": "Manages Complexity",
+    "complexity": "Manages Complexity",
+    "multiple": "Manages Complexity",
+    "prioritize": "Manages Complexity",
+    "scenarios": "Manages Complexity",
+    "variables": "Manages Complexity",
+    "ambiguity": "Manages Complexity",
+    "structured": "Manages Complexity",
+    
+    // Tech Savvy
+    "technology": "Tech Savvy",
+    "technical": "Tech Savvy",
+    "system": "Tech Savvy",
+    "software": "Tech Savvy",
+    "digital": "Tech Savvy",
+    "platform": "Tech Savvy",
+    "application": "Tech Savvy",
+    "database": "Tech Savvy",
+    "programming": "Tech Savvy",
+    "code": "Tech Savvy",
+    "tools": "Tech Savvy",
+    
+    // Collaborates
+    "collaborate": "Collaborates",
+    "team": "Collaborates",
+    "partnership": "Collaborates",
+    "work with": "Collaborates",
+    "cross-functional": "Collaborates",
+    "cooperation": "Collaborates",
+    "coordination": "Collaborates",
+    "jointly": "Collaborates",
+    
+    // Project Management
+    "project": "Project Management",
+    "deadline": "Project Management",
+    "timeline": "Project Management",
+    "schedule": "Project Management",
+    "plan": "Project Management",
+    "organize": "Project Management",
+    "deliver": "Project Management",
+    "milestone": "Project Management",
+    "track": "Project Management",
+    "agile": "Project Management",
+    "scrum": "Project Management",
+    "waterfall": "Project Management",
+    
+    // Adaptability
+    "adapt": "Adaptability",
+    "flexible": "Adaptability",
+    "change": "Adaptability",
+    "adjust": "Adaptability",
+    "versatile": "Adaptability",
+    "agile": "Adaptability",
+    "responsive": "Adaptability",
+    "pivot": "Adaptability",
+    "evolve": "Adaptability",
+    "dynamic": "Adaptability",
+    
+    // Innovation
+    "innovate": "Innovation",
+    "create": "Innovation",
+    "develop": "Innovation",
+    "new": "Innovation",
+    "novel": "Innovation",
+    "original": "Innovation",
+    "creative": "Innovation",
+    "invent": "Innovation",
+    "improve": "Innovation",
+    "transform": "Innovation"
+}; 
+
+// Function to process the job posting upload response
+function processJobPostingResponse(data) {
+    hideProcessingIndicator();
+    
+    if (data.success) {
+        addStatusMessage('Job posting processed successfully!', 'success');
+        globalJobPostingContent = true;
+        
+        // Store job data in SESSION_STORE
+        if (!window.SESSION_STORE) {
+            window.SESSION_STORE = {};
+        }
+        window.SESSION_STORE.job_posting = data;
+        
+        // Send for analysis
+        analyzeJobPosting(data.job_description);
+    } else {
+        addStatusMessage(`Error: ${data.error}`, 'danger');
+    }
+}
+
+// Function to analyze a job posting
+function analyzeJobPosting(jobDescription) {
+    if (!jobDescription) {
+        addStatusMessage('Error: No job description to analyze', 'danger');
+        return;
+    }
+    
+    showProcessingIndicator();
+    addStatusMessage('Analyzing job posting...', 'info');
+    
+    fetch('/api/job-analysis', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            jobDescription: jobDescription
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideProcessingIndicator();
+        
+        // Store analysis results
+        if (!window.SESSION_STORE) {
+            window.SESSION_STORE = {};
+        }
+        window.SESSION_STORE.job_analysis = data;
+        
+        // Show job analysis section
+        jobAnalysisSection.style.display = 'block';
+        
+        // Process responsibilities
+        if (data.tagged_responsibilities && Array.isArray(data.tagged_responsibilities)) {
+            // Render tagged responsibilities
+            renderTaggedResponsibilities(data.tagged_responsibilities, data.position_summary, data.summary_tags);
+            
+            // Update phase
+            updatePhase('Job Analysis Complete');
+        }
+        
+        // Display competencies
+        if (data.competencies && Array.isArray(data.competencies)) {
+            // Display competencies
+            const competenciesSection = document.getElementById('competenciesSection');
+            if (competenciesSection) {
+                competenciesSection.style.display = 'block';
+            }
+            
+            // Display competency cards
+            displayCompetencyCards(data.competencies);
+        }
+        
+        // Display recommended questions
+        if (data.questions && Array.isArray(data.questions)) {
+            displayQuestions(data.questions, 'Recommended Interview Questions');
+        }
+    })
+    .catch(error => {
+        hideProcessingIndicator();
+        addStatusMessage(`Error analyzing job posting: ${error}`, 'danger');
+        console.error('Error:', error);
+    });
+}
+
+// Function to render responsibilities with tags
+function renderTaggedResponsibilities(taggedResponsibilities, positionSummary = "", summaryTags = []) {
+    const respList = document.getElementById('jobResponsibilitiesList');
+    respList.innerHTML = '';
+    
+    // First, add the Position Summary section
+    const positionSummaryHeader = document.createElement('div');
+    positionSummaryHeader.className = 'competency-header';
+    positionSummaryHeader.textContent = 'Position Summary';
+    respList.appendChild(positionSummaryHeader);
+    
+    // Get position summary from job posting data (if available)
+    if (!positionSummary) {
+        positionSummary = "Position summary text will appear here when job description is processed.";
+        
+        // Try to get summary from SESSION_STORE
+        try {
+            if (window.SESSION_STORE && 
+                window.SESSION_STORE.job_posting && 
+                window.SESSION_STORE.job_posting.job_data && 
+                window.SESSION_STORE.job_posting.job_data.summary) {
+                positionSummary = window.SESSION_STORE.job_posting.job_data.summary;
+            }
+        } catch (e) {
+            console.error("Error accessing position summary:", e);
+        }
+    }
+    
+    // Create position summary element
+    const summaryItem = document.createElement('div');
+    summaryItem.className = 'responsibility-item position-summary';
+    
+    // Create summary text
+    const summaryText = document.createElement('div');
+    summaryText.className = 'responsibility-text';
+    summaryText.textContent = positionSummary;
+    summaryItem.appendChild(summaryText);
+    
+    // Add tags container for summary
+    const summaryTagsContainer = document.createElement('div');
+    summaryTagsContainer.className = 'tag-container';
+    
+    // If no summary tags provided, use default tag
+    if (!summaryTags || !Array.isArray(summaryTags) || summaryTags.length === 0) {
+        summaryTags = ["Role Overview"];
+    }
+    
+    // Add each tag for the summary
+    summaryTags.forEach(tag => {
+        const tagBadge = document.createElement('span');
+        tagBadge.className = 'competency-tag summary-tag';
+        tagBadge.textContent = tag;
+        summaryTagsContainer.appendChild(tagBadge);
+    });
+    
+    summaryItem.appendChild(summaryTagsContainer);
+    respList.appendChild(summaryItem);
+    
+    // Add a divider
+    const divider = document.createElement('hr');
+    divider.className = 'section-divider';
+    respList.appendChild(divider);
+    
+    // Now add the Essential Functions section
+    const essentialFunctionsHeader = document.createElement('div');
+    essentialFunctionsHeader.className = 'competency-header';
+    essentialFunctionsHeader.textContent = 'Essential Functions';
+    respList.appendChild(essentialFunctionsHeader);
+    
+    // List all responsibilities/requirements with their tags
+    taggedResponsibilities.forEach(item => {
+        const respItem = document.createElement('div');
+        respItem.className = 'responsibility-item';
+        
+        // Create responsibility text
+        const respText = document.createElement('div');
+        respText.className = 'responsibility-text';
+        respText.textContent = item.responsibility;
+        respItem.appendChild(respText);
+        
+        // Add tags container
+        const tagsContainer = document.createElement('div');
+        tagsContainer.className = 'tag-container';
+        
+        // Use the tags array directly from the item, even if empty
+        const tags = item.tags || []; // Use item.tags or default to empty array if undefined
+        
+        // Add each tag (won't run if tags is empty)
+        tags.forEach(tag => {
+            const tagBadge = document.createElement('span');
+            tagBadge.className = 'competency-tag';
+            tagBadge.textContent = tag;
+            tagsContainer.appendChild(tagBadge);
+        });
+        
+        respItem.appendChild(tagsContainer);
+        respList.appendChild(respItem);
+    });
+} 

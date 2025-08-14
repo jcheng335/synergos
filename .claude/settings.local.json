@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(cp:*)",
+      "Bash(python:*)",
+      "Bash(sed:*)",
+      "Bash(pip install:*)",
+      "Bash(git checkout:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "defaultMode": "acceptEdits"
+  }
+}

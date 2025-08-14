@@ -1,0 +1,3 @@
+# Tell Cursor to NOT ignore .env files
+!.env
+!.env.* 

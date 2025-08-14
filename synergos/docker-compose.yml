@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=main.py
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/synergos
+      - REDIS_URL=redis://redis:6379/0
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
+      - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=synergos
+    ports:
+      - "5432:5432"
+    restart: always
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  celery:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A synergos.celery worker --loglevel=info
+    volumes:
+      - ./:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/synergos
+      - REDIS_URL=redis://redis:6379/0
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
+      - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
+    depends_on:
+      - api
+      - db
+      - redis
+    restart: always
+
+  dashboard:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A synergos.celery flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - celery
+      - redis
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data: 

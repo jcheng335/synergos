@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synergos AI Interview</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Add basic styling for suggested/non-suggested questions */
+        .question-item label {
+            display: block; /* Ensure labels take full width */
+            margin-bottom: 5px;
+        }
+        .suggested-question label {
+            font-weight: bold;
+            color: #0056b3; /* Bootstrap primary-like color */
+        }
+        .non-suggested-question label {
+            color: #6c757d; /* Bootstrap secondary color (grey) */
+            font-style: italic;
+        }
+        .suggestion-reason {
+            font-size: 0.8em;
+            color: #28a745; /* Bootstrap success color */
+            margin-left: 25px; /* Indent under radio button */
+        }
+        .question-category {
+            margin-top: 20px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">AI-Powered Interview</h1>
+        <p>Interview ID: {{ interview_id }}</p>
+
+        <!-- Interview Controls -->
+        <div class="card mb-4">
+            <div class="card-header">Interview Controls</div>
+            <div class="card-body">
+                <button id="startInterviewBtn" class="btn btn-primary me-2">Start Interview</button>
+                <button id="nextQuestionBtn" class="btn btn-secondary me-2" disabled>Next Question</button>
+                <button id="endInterviewBtn" class="btn btn-danger" disabled>End Interview</button>
+                <div id="interviewStatus" class="mt-2">Status: Idle</div>
+                 <!-- Display Transcription Status -->
+                 <div id="transcriptionStatus" class="mt-2">Transcription: {{ ws_status }}</div>
+            </div>
+        </div>
+
+        <!-- Display Generated Questions -->
+        <div class="card mb-4">
+            <div class="card-header">Generated Interview Questions</div>
+            <div class="card-body" id="questionsArea">
+                {% if generated_questions %}
+                    <!-- Introduction Questions -->
+                    <h4 class="question-category">Introduction Questions</h4>
+                    {% if generated_questions.introduction_questions %}
+                        <ul class="list-group mb-3">
+                            {% for question in generated_questions.introduction_questions %}
+                                <li class="list-group-item">{{ question.question }} <small class="text-muted">({{ question.purpose }})</small></li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No introductory questions generated.</p>
+                    {% endif %}
+
+                    <!-- Competency-Based Questions -->
+                    <h4 class="question-category">Competency-Based Questions</h4>
+                    {% if generated_questions.competency_question_sets %}
+                        {% for competency_set in generated_questions.competency_question_sets %}
+                            <div class="mb-3">
+                                <h5>{{ competency_set.competency_name }}</h5>
+                                {% for question in competency_set.questions %}
+                                    <div class="question-item {% if question.suggested %}suggested-question{% else %}non-suggested-question{% endif %}">
+                                        <input type="radio" 
+                                               id="q_{{ loop.parent_loop.index }}_{{ loop.index }}" 
+                                               name="competency_{{ loop.parent_loop.index }}_{{ competency_set.competency_name | replace(' ', '_') }}" 
+                                               value="{{ question.text }}" 
+                                               {% if question.suggested %}checked{% endif %}>
+                                        <label for="q_{{ loop.parent_loop.index }}_{{ loop.index }}">{{ question.text }}</label>
+                                        {% if question.suggested and question.reason %}
+                                            <div class="suggestion-reason">Suggestion: {{ question.reason }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No competency-based questions generated. Ensure job analysis identified competencies and preset questions exist in DB.</p>
+                    {% endif %}
+
+                    <!-- Resume-Based Questions -->
+                    <h4 class="question-category">Resume-Based Questions</h4>
+                     {% if generated_questions.resume_based_questions %}
+                        <ul class="list-group">
+                            {% for question in generated_questions.resume_based_questions %}
+                                <li class="list-group-item">{{ question.question }} <small class="text-muted">(Focus: {{ question.focus }})</small></li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                         <p>No resume-based questions generated.</p>
+                    {% endif %}
+                {% else %}
+                    <p>No questions generated yet. Upload Job Description and Resume first.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Current Question & Transcription -->
+        <div class="card mb-4">
+            <div class="card-header">Current Question & Live Transcription</div>
+            <div class="card-body">
+                <div id="currentQuestion" class="mb-3">
+                    <strong>Current Question:</strong> <span id="questionText">N/A</span>
+                </div>
+                <div id="transcriptionOutput">
+                    <strong>Live Transcription:</strong>
+                    <pre id="transcript" style="height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background-color: #f8f9fa;">Waiting for transcription...</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interview Analysis (Placeholder) -->
+        <div class="card">
+            <div class="card-header">Interview Analysis</div>
+            <div class="card-body">
+                <div id="analysisOutput">
+                    Analysis will appear here after the interview ends.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/interview.js') }}"></script>
+    <script>
+        // Pass interview ID and initial questions to JavaScript
+        const interviewId = "{{ interview_id }}";
+        let allGeneratedQuestions = {{ generated_questions | tojson | safe if generated_questions else '{}' }};
+    </script>
+</body>
+</html> 
