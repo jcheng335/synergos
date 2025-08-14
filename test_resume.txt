@@ -1,0 +1,17 @@
+John Doe
+Senior Software Engineer
+
+Experience:
+- 5 years of experience in full-stack development
+- Expert in Python, JavaScript, React, and cloud technologies
+- Led team of 4 developers at TechCorp (2020-2023)
+- Developed microservices architecture at StartupXYZ (2018-2020)
+
+Skills:
+- Programming: Python, JavaScript, TypeScript, Java
+- Frameworks: React, Django, Flask, Node.js
+- Cloud: AWS, Azure, Docker, Kubernetes
+- Databases: PostgreSQL, MongoDB, Redis
+
+Education:
+- BS Computer Science, MIT (2018)

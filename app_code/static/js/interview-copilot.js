@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const startButton = document.getElementById('start');
     const stopButton = document.getElementById('stop');
     const testDemoButton = document.getElementById('testDemoButton');
+    const analyzeButton = document.getElementById('analyzeButton');
     const recordingIndicator = document.getElementById('recordingIndicator');
     const statusMessagesContainer = document.getElementById('statusMessages');
     const questionBox = document.getElementById('question_box');
@@ -95,7 +96,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Resume form submit handler
     resumeForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Resume form submitted');
         const formData = new FormData(resumeForm);
+        
+        // Log the file being uploaded
+        const fileInput = document.getElementById('resumeFile');
+        if (fileInput && fileInput.files.length > 0) {
+            console.log('Uploading file:', fileInput.files[0].name);
+        }
         
         // Show processing indicator
         showProcessingIndicator();
@@ -104,17 +112,37 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Resume upload response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Resume upload response data:', data);
             hideProcessingIndicator();
             
             if (data.success) {
-                addStatusMessage('Resume uploaded successfully!', 'success');
+                addStatusMessage('Resume uploaded and analyzed successfully!', 'success');
+                
+                // Store resume data in SESSION_STORE
+                if (!window.SESSION_STORE) {
+                    window.SESSION_STORE = {};
+                }
+                window.SESSION_STORE.resume = {
+                    uploaded: true,
+                    analysis: data.resume_analysis || {},
+                    questions: data.questions || []
+                };
                 
                 // Display Resume-based Questions if available
                 if (data.questions && data.questions.length > 0) {
-                    // Use the new function to display in a separate card
+                    console.log('Displaying', data.questions.length, 'resume questions');
                     displayResumeQuestions(data.questions);
+                } else {
+                    console.log('No questions returned from resume upload');
+                    addStatusMessage('Resume processed but no questions generated. Check API configuration.', 'warning');
                 }
                 
                 // --- Display Enhanced Resume Overview ---
@@ -185,20 +213,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 updatePhase('Resume Uploaded');
                 globalResumeContent = true;
             } else {
+                console.error('Resume upload failed:', data.error);
                 addStatusMessage(`Error: ${data.error}`, 'danger');
             }
         })
         .catch(error => {
+            console.error('Resume upload error:', error);
             hideProcessingIndicator();
             addStatusMessage(`Upload failed: ${error.message}`, 'danger');
-            console.error('Error:', error);
         });
     });
     
     // Job Posting form submit handler
     jobPostingForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Job posting form submitted');
         const formData = new FormData(jobPostingForm);
+        
+        // Log the file being uploaded
+        const fileInput = document.getElementById('jobPostingFile');
+        if (fileInput && fileInput.files.length > 0) {
+            console.log('Uploading job file:', fileInput.files[0].name);
+        }
         
         showProcessingIndicator();
         
@@ -206,12 +242,19 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Job posting upload response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Job posting upload response data:', data);
             hideProcessingIndicator();
             
             if (data.success) {
-                addStatusMessage('Job posting uploaded successfully!', 'success');
+                addStatusMessage('Job posting uploaded and analyzed successfully!', 'success');
                 globalJobPostingContent = true;
                 
                 // Store job data in session
@@ -365,6 +408,80 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Evernorth Demo button
+    // Analyze button handler
+    if (analyzeButton) {
+        analyzeButton.addEventListener('click', function() {
+            console.log("Analyze button clicked");
+            
+            // Check if resume or job posting has been uploaded
+            const hasResume = window.SESSION_STORE && window.SESSION_STORE.resume;
+            const hasJobPosting = window.SESSION_STORE && window.SESSION_STORE.job_posting;
+            
+            if (!hasResume && !hasJobPosting) {
+                addStatusMessage('Please upload a resume or job posting first to analyze.', 'warning');
+                return;
+            }
+            
+            showProcessingIndicator();
+            addStatusMessage('Analyzing documents and generating questions...', 'info');
+            
+            // If we have both, generate combined analysis
+            if (hasResume && hasJobPosting) {
+                fetch('/api/generate_recommendation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        has_resume: true,
+                        has_job_posting: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideProcessingIndicator();
+                    console.log('Combined analysis response:', data);
+                    
+                    if (data.questions && data.questions.length > 0) {
+                        displayQuestions(data.questions, 'Interview Questions');
+                        addStatusMessage('Analysis complete! Questions generated based on resume and job posting.', 'success');
+                    } else {
+                        addStatusMessage('Analysis complete but no questions were generated. Check API configuration.', 'warning');
+                    }
+                })
+                .catch(error => {
+                    hideProcessingIndicator();
+                    console.error('Analysis error:', error);
+                    addStatusMessage('Error during analysis: ' + error.message, 'danger');
+                });
+            }
+            // If only resume, re-process it
+            else if (hasResume) {
+                addStatusMessage('Re-analyzing resume...', 'info');
+                // Trigger the resume form submit programmatically
+                const resumeForm = document.getElementById('resumeForm');
+                const fileInput = document.getElementById('resumeFile');
+                if (fileInput && fileInput.files.length > 0) {
+                    resumeForm.dispatchEvent(new Event('submit'));
+                } else {
+                    hideProcessingIndicator();
+                    addStatusMessage('Please re-upload the resume file.', 'warning');
+                }
+            }
+            // If only job posting, re-process it
+            else if (hasJobPosting) {
+                addStatusMessage('Re-analyzing job posting...', 'info');
+                // Trigger the job posting form submit programmatically
+                const jobForm = document.getElementById('jobPostingForm');
+                const fileInput = document.getElementById('jobPostingFile');
+                if (fileInput && fileInput.files.length > 0) {
+                    jobForm.dispatchEvent(new Event('submit'));
+                } else {
+                    hideProcessingIndicator();
+                    addStatusMessage('Please re-upload the job posting file.', 'warning');
+                }
+            }
+        });
+    }
+    
     const evernorthDemoButton = document.getElementById('evernorthDemoButton');
     if (evernorthDemoButton) {
         evernorthDemoButton.addEventListener('click', function() {
