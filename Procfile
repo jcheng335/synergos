@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0:${PORT:-8080} app_wrapper:application
+web: python start.py
