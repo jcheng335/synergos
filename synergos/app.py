@@ -26,6 +26,14 @@ import uuid
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from openai_client_fix import get_patched_client
 
+# Import Nova integration
+try:
+    from nova_routes import nova_bp
+    NOVA_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Nova integration not available: {e}")
+    NOVA_AVAILABLE = False
+
 # --- Constants ---
 # Define table names globally for this app context
 COMPETENCIES_TABLE_NAME = 'competencies' 
@@ -93,6 +101,13 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload size
 
 # Register close_db function with Flask app
 app.teardown_appcontext(close_db)
+
+# Register Nova integration blueprint if available
+if NOVA_AVAILABLE:
+    app.register_blueprint(nova_bp)
+    logger.info("Nova integration registered successfully")
+else:
+    logger.warning("Nova integration not registered - will use fallback transcription")
 
 # Use environment variables for AWS credentials
 aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')

@@ -66,6 +66,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Session ID for transcript/analysis API calls
     const sessionId = Date.now().toString();
     
+    // Nova Sonic session management
+    let novaSessionId = null;
+    let isNovaInitialized = false;
+    
     // Initialize global interview data object
     window.interviewData = {
         questions: {},
@@ -996,160 +1000,71 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to start the interview - Using Web Speech API again
-    function startInterview() {
+    async function startInterview() {
         if (isRecording) return;
         if (!selectedQuestionsBox.querySelector('.selected-question-item')) {
            addStatusMessage('Please select at least one interview question before starting.', 'warning');
            return;
         }
 
-        // --- Initialize Web Speech API ---
-        let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            addStatusMessage('Speech recognition not supported in your browser. Try Chrome or Edge.', 'danger');
-            return;
-        }
-        
-        window.recognition = new SpeechRecognition();
-        recognition.continuous = true; 
-        recognition.interimResults = true; 
-        recognition.lang = 'en-US'; 
-        
-        let finalTranscript = ''; // Accumulates final transcript for the current speaking turn
-        let currentResponseDiv = null; // Will hold the div for the current response
-
-        // Function to create or find the current response div
-        function getCurrentResponseDiv() {
-            let div = candidateTranscriptBox.querySelector('.candidate-response.current');
-            if (!div) {
-                div = document.createElement('div');
-                div.className = 'candidate-response current';
-                div.innerHTML = '<span class="candidate-text">Candidate:</span> <span class="candidate-words"></span>';
-                candidateTranscriptBox.appendChild(div);
-                candidateTranscriptBox.scrollTop = candidateTranscriptBox.scrollHeight;
-            }
-            return div;
-        }
-        
-        // Handle results
-        recognition.onresult = function(event) {
-            let interimTranscript = '';
-            let segmentIsFinal = false;
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                const transcriptPart = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcriptPart + ' ';
-                    segmentIsFinal = true;
-                } else {
-                    interimTranscript += transcriptPart;
-                }
-            }
-
-            const responseDiv = getCurrentResponseDiv();
-            const wordsContainer = responseDiv.querySelector('.candidate-words');
-            if (wordsContainer) {
-                wordsContainer.innerHTML = finalTranscript + '<span class="interim" style="color: grey;">' + interimTranscript + '</span>';
-            }
-            candidateTranscriptBox.scrollTop = candidateTranscriptBox.scrollHeight;
-
-            // Trigger Debounced Analysis on final segment
-            if (segmentIsFinal && currentQuestion) {
-                clearTimeout(analysisTimeout);
-                analysisTimeout = setTimeout(() => {
-                    console.log("Debounce timer expired. Triggering analysis for:", finalTranscript.trim());
-                    if (finalTranscript.trim().length > 10) { // Add minimum length check
-                         analyzeResponse(finalTranscript.trim(), currentQuestion);
-                    }
-                }, ANALYSIS_DEBOUNCE_MS);
-            }
-        };
-
-        // Handle end of speech segment
-        recognition.onend = function() {
-            console.log("Speech recognition segment ended.");
-            const currentDiv = candidateTranscriptBox.querySelector('.candidate-response.current');
-            if (currentDiv) {
-                currentDiv.classList.remove('current');
-                 const words = currentDiv.querySelector('.candidate-words');
-                 if (words) words.textContent = finalTranscript.trim(); // Clean up final display
-            }
-            // Restart listening if still recording
-            if (isRecording) {
-                console.log("Restarting recognition...");
-                try {
-                    recognition.start();
-                    finalTranscript = ''; // Reset for next turn
-                } catch (e) {
-                    console.error("Error restarting recognition:", e);
-                    // stopInterview(); // Optionally stop if restart fails
-                }
-            }
-        };
-
-        // Handle errors
-        recognition.onerror = function(event) {
-            console.error('Speech recognition error:', event.error, event.message);
-            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                addStatusMessage('Microphone access denied or service not allowed.', 'danger');
-                stopInterview();
-            } else if (event.error === 'no-speech' || event.error === 'audio-capture') {
-                console.warn(`Recognition error: ${event.error}. Attempting restart if still recording.`);
-                // onend should handle restart if isRecording is true
-            } else {
-                addStatusMessage(`Speech recognition error: ${event.error}`, 'warning');
-            }
-        };
-
-        // Start recognition
         try {
-            recognition.start();
-            isRecording = true;
-            updateRecordingIndicator();
-            startButton.disabled = true;
-            stopButton.disabled = false;
-            addStatusMessage('Interview started! Listening...', 'info');
-            updatePhase('Interviewing');
-            
-            // Clear previous analysis
-            responseSummaryBox.innerHTML = '<p class="text-muted">Analysis will appear here after candidate responds.</p>';
-            followupQuestionsContainer.innerHTML = '<p class="text-muted small">Follow-up questions will appear here.</p>';
-
-            // Ask the first selected question
-            const firstSelected = selectedQuestionsBox.querySelector('.selected-question-item');
-            if(firstSelected) {
-                currentQuestion = firstSelected.getAttribute('data-question');
-                askQuestion(currentQuestion);
-                firstSelected.classList.add('active'); // Mark first question as active
-            } else {
-                addStatusMessage('Error: No question found in selected list to start.', 'danger');
-                stopInterview();
-            }
-
-        } catch (e) {
-            console.error('Error starting speech recognition:', e);
-            addStatusMessage(`Could not start speech recognition: ${e.message}`, 'danger');
+            // Initialize Nova transcription
+            await startNovaTranscription();
+        } catch (error) {
+            addStatusMessage('Failed to start recording. Please check your microphone permissions and try again.', 'danger');
+            console.error('Failed to start Nova transcription:', error);
+            return;
+        } 
+        
+        // Nova will handle transcription via the processNovaTranscription function
+        // Set up interview state
+        isRecording = true;
+        startButton.disabled = true;
+        stopButton.disabled = true; // Will be enabled once recording starts successfully
+        
+        // Clear previous transcript
+        candidateTranscriptBox.innerHTML = '';
+        
+        // Show the first question
+        if (selectedQuestions.length > 0) {
+            currentQuestion = selectedQuestions[0].question_text || selectedQuestions[0];
+            showCurrentQuestion();
         }
-        // --- End Web Speech API Setup ---
+
+        
+        // Update UI state
+        updateRecordingIndicator('Recording...', 'text-danger');
+        stopButton.disabled = false;
+        addStatusMessage('Interview started! Listening with Nova...', 'info');
+        updatePhase('Interviewing');
+        
+        // Clear previous analysis
+        responseSummaryBox.innerHTML = '<p class="text-muted">Analysis will appear here after candidate responds.</p>';
+        followupQuestionsContainer.innerHTML = '<p class="text-muted small">Follow-up questions will appear here.</p>';
+
+        // Ask the first selected question
+        const firstSelected = selectedQuestionsBox.querySelector('.selected-question-item');
+        if(firstSelected) {
+            currentQuestion = firstSelected.getAttribute('data-question');
+            askQuestion(currentQuestion);
+            firstSelected.classList.add('active'); // Mark first question as active
+        } else {
+            addStatusMessage('Error: No question found in selected list to start.', 'danger');
+            stopInterview();
+        }
     }
     
-    // Function to stop the interview - Using Web Speech API
+    // Function to stop the interview - Using Nova
     function stopInterview() {
         if (!isRecording) return;
         console.log("Stop interview called.");
-        isRecording = false; // Prevent restart in onend
+        isRecording = false;
         clearTimeout(analysisTimeout); // Cancel any pending analysis
 
-        if (window.recognition) {
-            try {
-                window.recognition.stop(); 
-                console.log("Speech recognition stopped.");
-            } catch (e) {
-                console.error('Error stopping recognition:', e);
-            }
-            window.recognition = null; 
-        }
+        // Stop Nova transcription
+        stopNovaTranscription();
 
-        updateRecordingIndicator();
+        updateRecordingIndicator('Stopped', 'text-muted');
         startButton.disabled = false;
         stopButton.disabled = true;
 
@@ -1381,11 +1296,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Function to update recording indicator
-    function updateRecordingIndicator() {
-        if (isRecording) {
-            recordingIndicator.classList.add('recording');
+    function updateRecordingIndicator(text, className) {
+        if (!text && !className) {
+            // Legacy behavior - use recording state
+            if (isRecording) {
+                recordingIndicator.classList.add('recording');
+                recordingIndicator.textContent = 'Recording...';
+            } else {
+                recordingIndicator.classList.remove('recording');
+                recordingIndicator.textContent = '';
+            }
         } else {
-            recordingIndicator.classList.remove('recording');
+            // New behavior - use provided text and class
+            recordingIndicator.textContent = text || '';
+            recordingIndicator.className = className || '';
         }
     }
     
@@ -2356,4 +2280,200 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load API key status on page load
     loadApiKeyStatus();
+
+    // ========== Nova Sonic Integration ==========
+    
+    async function initializeNovaSession() {
+        try {
+            const response = await fetch('/api/get-nova-credentials', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            if (data.session_id) {
+                novaSessionId = data.session_id;
+                isNovaInitialized = true;
+                console.log('Nova session initialized:', novaSessionId);
+                
+                // Update UI to show Nova is ready
+                updateRecordingIndicator('Nova Ready', 'text-success');
+                
+                return true;
+            } else {
+                throw new Error('Failed to initialize Nova session');
+            }
+        } catch (error) {
+            console.error('Error initializing Nova session:', error);
+            updateRecordingIndicator('Nova Error', 'text-danger');
+            return false;
+        }
+    }
+    
+    async function startNovaTranscription() {
+        if (!isNovaInitialized) {
+            console.log('Initializing Nova session...');
+            const initialized = await initializeNovaSession();
+            if (!initialized) {
+                throw new Error('Failed to initialize Nova session');
+            }
+        }
+        
+        try {
+            // Get user media for audio recording
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    sampleRate: 16000
+                } 
+            });
+            
+            // Set up MediaRecorder for capturing audio chunks
+            const mediaRecorder = new MediaRecorder(stream, {
+                mimeType: 'audio/webm; codecs=opus'
+            });
+            
+            let audioChunks = [];
+            
+            mediaRecorder.ondataavailable = async (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                    
+                    // Convert to base64 and send to Nova
+                    const audioBlob = new Blob([event.data], { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        const base64Audio = reader.result.split(',')[1];
+                        await sendAudioToNova(base64Audio);
+                    };
+                    reader.readAsDataURL(audioBlob);
+                }
+            };
+            
+            // Start recording with 1-second intervals for real-time processing
+            mediaRecorder.start(1000);
+            
+            // Store reference for stopping later
+            window.novaMediaRecorder = mediaRecorder;
+            window.novaStream = stream;
+            
+            console.log('Nova transcription started');
+            updateRecordingIndicator('Recording...', 'text-danger');
+            
+        } catch (error) {
+            console.error('Error starting Nova transcription:', error);
+            throw error;
+        }
+    }
+    
+    async function sendAudioToNova(base64Audio) {
+        if (!novaSessionId) return;
+        
+        try {
+            const response = await fetch('/api/nova-real-time-diarization', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: novaSessionId,
+                    audio_chunk: base64Audio,
+                    timestamp: new Date().toISOString()
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success && data.diarization) {
+                processNovaTranscription(data.diarization);
+            }
+        } catch (error) {
+            console.error('Error sending audio to Nova:', error);
+        }
+    }
+    
+    function processNovaTranscription(diarization) {
+        if (!diarization.speakers || diarization.speakers.length === 0) return;
+        
+        // Process each speaker segment
+        diarization.speakers.forEach(speaker => {
+            if (speaker.transcript && speaker.transcript.trim()) {
+                const speakerRole = speaker.speaker_role || 'Unknown';
+                const transcript = speaker.transcript;
+                const confidence = speaker.confidence || 0;
+                const emotions = speaker.emotions || {};
+                
+                // Update the transcript display
+                updateTranscriptDisplay(speakerRole, transcript, confidence, emotions);
+                
+                // If this is candidate speech, trigger analysis
+                if (speakerRole === 'candidate' && transcript.length > 50) {
+                    debounceAnalysis(transcript);
+                }
+            }
+        });
+    }
+    
+    function updateTranscriptDisplay(speaker, text, confidence, emotions) {
+        const transcriptBox = document.getElementById('candidate_transcript_box');
+        if (!transcriptBox) return;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const emotionBadges = emotions ? Object.entries(emotions)
+            .filter(([_, value]) => value > 0.5)
+            .map(([emotion, value]) => `<span class="badge bg-info">${emotion}: ${(value * 100).toFixed(0)}%</span>`)
+            .join(' ') : '';
+        
+        const entry = document.createElement('div');
+        entry.className = `transcript-entry ${speaker.toLowerCase()}`;
+        entry.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="fw-bold text-${speaker === 'candidate' ? 'primary' : 'secondary'}">${speaker}:</span>
+                <small class="text-muted">${timestamp} (${(confidence * 100).toFixed(0)}%)</small>
+            </div>
+            <div class="transcript-text">${text}</div>
+            ${emotionBadges ? `<div class="mt-1">${emotionBadges}</div>` : ''}
+        `;
+        
+        transcriptBox.appendChild(entry);
+        transcriptBox.scrollTop = transcriptBox.scrollHeight;
+    }
+    
+    function stopNovaTranscription() {
+        if (window.novaMediaRecorder) {
+            window.novaMediaRecorder.stop();
+            window.novaMediaRecorder = null;
+        }
+        
+        if (window.novaStream) {
+            window.novaStream.getTracks().forEach(track => track.stop());
+            window.novaStream = null;
+        }
+        
+        updateRecordingIndicator('Stopped', 'text-muted');
+        console.log('Nova transcription stopped');
+    }
+    
+    function updateRecordingIndicator(text, className) {
+        const indicator = document.getElementById('recordingIndicator');
+        if (indicator) {
+            indicator.textContent = text;
+            indicator.className = className;
+        }
+    }
+    
+    // Debounced analysis to avoid too many API calls
+    let analysisTimeout;
+    function debounceAnalysis(transcript) {
+        clearTimeout(analysisTimeout);
+        analysisTimeout = setTimeout(() => {
+            if (currentQuestion) {
+                analyzeResponse(transcript, currentQuestion);
+            }
+        }, 2000);
+    }
+    
+    // Nova integration is handled in the existing start/stop event listeners above
 }); 

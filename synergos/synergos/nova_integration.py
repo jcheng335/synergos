@@ -16,7 +16,7 @@ nova_bp = Blueprint('nova', __name__)
 # Store active sessions (in a real app, use a proper database)
 active_sessions = {}
 
-@nova_bp.route('/get-nova-credentials', methods=['POST'])
+@nova_bp.route('/api/get-nova-credentials', methods=['POST'])
 def get_nova_credentials():
     """Get credentials for Nova Sonic"""
     try:

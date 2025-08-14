@@ -14,7 +14,10 @@
       "Bash(python:*)",
       "Bash(sed:*)",
       "Bash(pip install:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(find:*)",
+      "Bash(mv:*)",
+      "Bash(docker build:*)"
     ],
     "deny": [],
     "ask": [],
