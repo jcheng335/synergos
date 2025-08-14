@@ -24,5 +24,12 @@ USER appuser
 EXPOSE 8080
 
 
+# Set environment variable for Python path
+ENV PYTHONPATH=/app:/app/app_code
+ENV PORT=8080
+
+# Debug: List files
+RUN ls -la /app/
+
 # Run with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "--timeout", "120", "wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "wsgi:application"]
